@@ -15,20 +15,78 @@ def all_colors():
     return 'robwgtynpd'
 
 
-def get_color(c):
-    return [
-        (214, 39, 40),  # red
-        (255, 127, 14),  # orange
-        (31, 119, 180),  # blue
-        (148, 103, 189),  # purple
-        (44, 160, 44),  # green
-        (140, 86, 75),  # brown
-        (188, 189, 34),  # yellow
-        (23, 190, 207),  # cyan
-        (227, 119, 194),  # pink
-        # (127, 127, 127),  # grey
-        (255, 255, 0),  # grey
-    ][c]
+def get_color(c, *, scheme):
+    schemes = [[
+        (84,48,5),
+        (140,81,10),
+        (191,129,45),
+        (223,194,125),
+        (246,232,195),
+        (199,234,229),
+        (128,205,193),
+        (53,151,143),
+        (1,102,94),
+        (0,60,48),
+    ], [
+        (142,1,82),
+        (197,27,125),
+        (222,119,174),
+        (241,182,218),
+        (253,224,239),
+        (230,245,208),
+        (184,225,134),
+        (127,188,65),
+        (77,146,33),
+        (39,100,25),
+    ], [
+        (64,0,75),
+        (118,42,131),
+        (153,112,171),
+        (194,165,207),
+        (231,212,232),
+        (217,240,211),
+        (166,219,160),
+        (90,174,97),
+        (27,120,55),
+        (0,68,27),
+    ], [
+        (127,59,8),
+        (179,88,6),
+        (224,130,20),
+        (253,184,99),
+        (254,224,182),
+        (216,218,235),
+        (178,171,210),
+        (128,115,172),
+        (84,39,136),
+        (45,0,75),
+    ], [
+        (103,0,31),
+        (178,24,43),
+        (214,96,77),
+        (244,165,130),
+        (253,219,199),
+        (209,229,240),
+        (146,197,222),
+        (67,147,195),
+        (33,102,172),
+        (5,48,97),
+    ], [
+        (165,0,38),
+        (215,48,39),
+        (244,109,67),
+        (253,174,97),
+        (254,224,144),
+        (224,243,248),
+        (171,217,233),
+        (116,173,209),
+        (69,117,180),
+        (49,54,149),
+    ]]
+
+    assert scheme >= 0 and scheme < len(schemes)
+    
+    return schemes[scheme][c]
 
 
 def fill(img, *, row, col, scale, margin, color):
@@ -39,7 +97,7 @@ def fill(img, *, row, col, scale, margin, color):
             img[i, (j, j + 1, j + 2)] = color
 
 
-def main(file_name, pedantic):
+def main(file_name, pedantic, style, color_scheme):
     n_colors = len(all_colors())
     latin_square = np.empty((n_colors, n_colors), dtype=np.int)
 
@@ -68,19 +126,22 @@ def main(file_name, pedantic):
     for i in range(n_colors):
         for j in range(n_colors):
             c = latin_square[i, j]
-            c1 = get_color(c // 10)
-            c2 = get_color(c % 10)
+            c1 = get_color(c // 10, scheme=color_scheme)
+            c2 = get_color(c % 10, scheme=color_scheme)
 
-            # fill(img, row=i, col=j, scale=scale, margin=int(scale * .1), color=c1)
-            # fill(img, row=i, col=j, scale=scale, margin=int(scale * .3), color=c2)
             fill(img, row=i, col=j, scale=scale, margin=0, color=c1)
-            fill(img, row=i, col=j, scale=scale, margin=int(scale * .2), color=c2)
+            if style == 'tidy':
+                fill(img, row=i, col=j, scale=scale, margin=int(scale * .3), color=c2)
+            else:
+                fill(img, row=i, col=j, scale=scale, margin=int(scale * .2), color=c2)
 
-    f = open('latin_square.png', 'wb')
+    f = open(f'latin_square_{style}_{color_scheme + 1}.png', 'wb')
     w = png.Writer(img.shape[0], img.shape[1] // 3, greyscale=False)
     w.write(f, img.tolist())
     f.close()
 
 
 if __name__ == '__main__':
-    main('latin_square_10x10_wrong.txt', pedantic=False)
+    for style in ['tidy', 'dirty']:
+        for scheme in range(6):
+            main('latin_square_10x10_wrong.txt', pedantic=False, style=style, color_scheme=scheme)
